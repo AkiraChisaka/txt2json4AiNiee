@@ -14,6 +14,9 @@ def convert_to_json(input_file, output_file):
     for line in lines:
         if line.strip():  # If line contains text
             if new_paragraph:
+                # Remove only the last newline character
+                if current_entry.endswith('\n'):
+                    current_entry = current_entry[:-1]
                 json_dict[str(len(json_dict) + 1)] = current_entry
                 current_entry = line
                 new_paragraph = False
@@ -25,6 +28,9 @@ def convert_to_json(input_file, output_file):
             current_entry += line  # Add the newline to the current entry
 
     if current_entry.strip():  # Add any remaining text to the json_dict
+        # Remove only the last newline character
+        if current_entry.endswith('\n'):
+            current_entry = current_entry[:-1]
         json_dict[str(len(json_dict) + 1)] = current_entry
 
     with open(output_file, 'w', encoding='utf-8') as file:
@@ -36,10 +42,11 @@ def json_to_text(input_file, output_file):
         json_data = json.load(file)
 
     with open(output_file, 'w', encoding='utf-8') as file:
+        last_key = str(len(json_data))  # Get the last key to avoid extra newlines at the end
         for key in sorted(json_data, key=int):
-            file.write(json_data[key])  # Write the text as it is
-            if not json_data[key].endswith('\n'):  # If the text doesn't already end with a newline
-                file.write('\n')  # Add a newline after each JSON entry
+            file.write(json_data[key])
+            if key != last_key:  # Avoid adding an extra newline at the end of the file
+                file.write('\n')  # Add a newline to separate entries
 
 # Main function to decide the conversion type
 def main():

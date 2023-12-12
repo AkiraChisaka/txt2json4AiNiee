@@ -8,29 +8,27 @@ def convert_to_json(input_file, output_file):
         lines = file.readlines()
 
     json_dict = {}
-    buffer = ""
-    empty_lines_count = 0
+    current_entry = ""
+    new_paragraph = False
 
     for line in lines:
-        if line.strip():  # If the line has text
-            if empty_lines_count > 1:
-                # Add extra newlines for multiple empty lines
-                buffer += '\n' * (empty_lines_count - 1)
-            buffer += line.strip() + '\n'  # Add the text line with a newline at the end
-            empty_lines_count = 0  # Reset empty lines count
-        else:
-            empty_lines_count += 1  # Increment empty lines count
+        if line.strip():  # If line contains text
+            if new_paragraph:
+                json_dict[str(len(json_dict) + 1)] = current_entry
+                current_entry = line
+                new_paragraph = False
+            else:
+                current_entry += line
+        else:  # Line is empty (i.e., contains only a newline)
+            if current_entry.strip():  # Check if there's text before this empty line
+                new_paragraph = True
+            current_entry += line  # Add the newline to the current entry
 
-    # Remove the last added newline and add the buffer to json_dict
-    if buffer.strip():
-        json_dict[str(len(json_dict) + 1)] = buffer.rstrip('\n')
+    if current_entry.strip():  # Add any remaining text to the json_dict
+        json_dict[str(len(json_dict) + 1)] = current_entry
 
     with open(output_file, 'w', encoding='utf-8') as file:
         json.dump(json_dict, file, ensure_ascii=False, indent=4)
-
-
-
-
 
 # Convert JSON back to text
 def json_to_text(input_file, output_file):
@@ -39,8 +37,9 @@ def json_to_text(input_file, output_file):
 
     with open(output_file, 'w', encoding='utf-8') as file:
         for key in sorted(json_data, key=int):
-            text = json_data[key].replace("\\n", "\n")
-            file.write(text + '\n\n')
+            file.write(json_data[key])  # Write the text as it is
+            if not json_data[key].endswith('\n'):  # If the text doesn't already end with a newline
+                file.write('\n')  # Add a newline after each JSON entry
 
 # Main function to decide the conversion type
 def main():

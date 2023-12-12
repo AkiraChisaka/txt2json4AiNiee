@@ -2,34 +2,35 @@ import json
 import sys
 import os
 
-# Initialize a counter for all lines
-counter = 1
-
-# Function to convert each line to a JSON object
-def line_to_json(line, json_dict):
-    global counter
-    parts = line.split(':', 1)
-    if len(parts) == 2:
-        json_dict[str(counter)] = f"{parts[0].strip()}:{parts[1].strip()}"
-    else:
-        json_dict[str(counter)] = line.strip()
-    counter += 1  # Increment the counter
-
 # Convert text file to JSON
 def convert_to_json(input_file, output_file):
-    global counter
-    counter = 1  # Reset counter for each file conversion
-
     with open(input_file, 'r', encoding='utf-8') as file:
         lines = file.readlines()
 
     json_dict = {}
+    buffer = ""
+    empty_lines_count = 0
+
     for line in lines:
-        if line.strip():
-            line_to_json(line, json_dict)
+        if line.strip():  # If the line has text
+            if empty_lines_count > 1:
+                # Add extra newlines for multiple empty lines
+                buffer += '\n' * (empty_lines_count - 1)
+            buffer += line.strip() + '\n'  # Add the text line with a newline at the end
+            empty_lines_count = 0  # Reset empty lines count
+        else:
+            empty_lines_count += 1  # Increment empty lines count
+
+    # Remove the last added newline and add the buffer to json_dict
+    if buffer.strip():
+        json_dict[str(len(json_dict) + 1)] = buffer.rstrip('\n')
 
     with open(output_file, 'w', encoding='utf-8') as file:
         json.dump(json_dict, file, ensure_ascii=False, indent=4)
+
+
+
+
 
 # Convert JSON back to text
 def json_to_text(input_file, output_file):
@@ -38,7 +39,8 @@ def json_to_text(input_file, output_file):
 
     with open(output_file, 'w', encoding='utf-8') as file:
         for key in sorted(json_data, key=int):
-            file.write(json_data[key] + '\n')
+            text = json_data[key].replace("\\n", "\n")
+            file.write(text + '\n\n')
 
 # Main function to decide the conversion type
 def main():

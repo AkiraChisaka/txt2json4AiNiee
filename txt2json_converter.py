@@ -61,6 +61,29 @@ def combine_json_files(json_file1, json_file2, output_file):
     with open(output_file, 'w', encoding='utf-8') as file:
         json.dump(combined_json, file, ensure_ascii=False, indent=4)
 
+# Combines 2 JSON files and converts the result to text
+def combine_and_convert_to_text(json_file1, json_file2, output_file_json, output_file_txt):
+    combine_json_files(json_file1, json_file2, output_file_json)
+    json_to_text(output_file_json, output_file_txt)
+
+# Stuff for the main function
+def get_output_file(input_file, output_directory, extension, append_char=''):
+    file_dir, file_name = os.path.split(input_file)
+    name_without_ext = os.path.splitext(file_name)[0] + append_char
+    if output_directory:
+        return os.path.join(output_directory, name_without_ext + extension)
+    else:
+        return os.path.join(file_dir, name_without_ext + extension)
+
+# Stuff for error
+def print_general_usage():
+    print("Usage: python script.py <mode> <required arguments based on mode>")
+    print("Modes:")
+    print("1 - Convert to JSON: python script.py 1 <input file> [output directory]")
+    print("2 - Convert to Text: python script.py 2 <input JSON file> [output directory]")
+    print("3 - Combine JSON files: python script.py 3 <json_file1> <json_file2> [output file]")
+    print("4 - Combine JSON files and Convert to Text: python script.py 4 <json_file1> <json_file2> [output directory]")
+
 # Main function to decide the conversion type
 def main():
     if len(sys.argv) < 3:
@@ -88,25 +111,19 @@ def main():
         output_file = sys.argv[4] if len(sys.argv) > 4 else get_output_file(json_file1, None, '.json', append_char='m')
         combine_json_files(json_file1, json_file2, output_file)
 
+    elif mode == '4':
+        if len(sys.argv) < 4:
+            print("Usage: python script.py 4 <json_file1> <json_file2> [output directory]")
+            return
+        json_file1 = sys.argv[2]
+        json_file2 = sys.argv[3]
+        output_directory = sys.argv[4] if len(sys.argv) > 4 else None
+        output_file_json = get_output_file(json_file1, output_directory, '.json', append_char='m')
+        output_file_txt = get_output_file(json_file1, output_directory, '.txt', append_char='mc')
+        combine_and_convert_to_text(json_file1, json_file2, output_file_json, output_file_txt)
+
     else:
         print_general_usage()
-
-# Stuff for the main function
-def get_output_file(input_file, output_directory, extension, append_char=''):
-    file_dir, file_name = os.path.split(input_file)
-    name_without_ext = os.path.splitext(file_name)[0] + append_char
-    if output_directory:
-        return os.path.join(output_directory, name_without_ext + extension)
-    else:
-        return os.path.join(file_dir, name_without_ext + extension)
-
-# Stuff for error
-def print_general_usage():
-    print("Usage: python script.py <mode> <required arguments based on mode>")
-    print("Modes:")
-    print("1 - Convert to JSON: python script.py 1 <input file> [output directory]")
-    print("2 - Convert to Text: python script.py 2 <input JSON file> [output directory]")
-    print("3 - Combine JSON files: python script.py 3 <json_file1> <json_file2> [output file]")
 
 if __name__ == "__main__":
     main()

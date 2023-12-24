@@ -9,21 +9,18 @@ def convert_to_json(input_file, output_file):
 
     json_dict = {}
     current_entry = ""
-    min_length = 80  # Minimum length of a line
+    line_count = 0
 
     for line in lines:
+        line_count += 1
         current_entry += line
-        # Check if current entry is long enough and ends with a newline
-        if len(current_entry) >= min_length and current_entry.endswith('\n'):
-            # Remove only the last newline character
+
+        if not line.strip() or (line_count == len(lines)) or (line_count < len(lines) and lines[line_count].strip()):
+            # Remove only one newline character from the end if present
             if current_entry.endswith('\n'):
                 current_entry = current_entry[:-1]
             json_dict[str(len(json_dict) + 1)] = current_entry
-            current_entry = ""  # Reset for next entry
-
-    # Add the last remaining entry if it's not empty
-    if current_entry.strip():
-        json_dict[str(len(json_dict) + 1)] = current_entry
+            current_entry = ""  # Reset for the next entry
 
     with open(output_file, 'w', encoding='utf-8') as file:
         json.dump(json_dict, file, ensure_ascii=False, indent=4)
